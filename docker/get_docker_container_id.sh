@@ -12,7 +12,7 @@ docker run $image
 
 # Retrieve the full id of the image, looks like 
 # sha256:d59bdb51bb5c4fb7b2c8d90ae445e0720c169c553bcf553f67cb9dd208a4ec15
-fullid=`docker inspect --format="{{.Id}}" ubuntu:14.04`
+fullid=`docker inspect --format="{{.Id}}" $image`
 
 # Split by : to get rid of sha256
 IFS=':' read -a fullid <<< "$fullid"
