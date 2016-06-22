@@ -38,13 +38,6 @@ if [[ $permission == false ]]; then
     exit 0;
 fi
 
-# Get the container size
-#fullid=`$SUDOCMD docker inspect --format="{{.Id}}" $image`
-#IFS=':' read -a fullid <<< "$fullid"
-#$SUDOCMD du -d 2 -h /var/lib/docker/aufs | ${fullid[1]}
-#size=`$SUDOCMD docker run --entrypoint=/bin/sh $image -c 'du -sh / 2>/dev/null | cut -f1'`
-#size=4096
-
 # Run the image and obtain the ID, should DL if we don't have it
 runningid=`$SUDOCMD docker run -d $image tail -f /dev/null`
 
@@ -64,6 +57,14 @@ image_name=${image_name/\//_}
 #creation_date=`$SUDOCMD docker inspect --format="{{.Created}}" $container_id`
 creation_date=`$SUDOCMD docker inspect --format="{{.Created}}" $image`
 size=`$SUDOCMD docker inspect --format="{{.Size}}" $image`
+# convert size in MB (it seems too small for singularity containers ...?). Add 1MB to round up (minimum).
+size=`echo $(($size/1000000+1))`
+# adding half of the container size seems to work (do not know why exactly...?)
+# I think it would be Ok by adding 1/3 of the size.
+size=`echo $(($size+$size/2))`
+#uncomment the following if it is too small (it should be enough; otherwise adjust it).
+#size=4096
+echo "Size: $size MB for the singularity container"
 creation_date=`echo ${creation_date} | cut -c1-10`
 new_container_name=$image_name-$creation_date.img
 
