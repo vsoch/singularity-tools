@@ -1,7 +1,7 @@
 #! /bin/bash
 #
-# 
-# container by running the image and exporting.
+# docker2singularity.sh will convert a docker image into a singularity
+# Must be run with sudo to use docker commands (eg aufs)
 #
 # USAGE: docker2singularity.sh ubuntu:14.04
 
@@ -12,10 +12,6 @@ if [ -z $1 ]; then
 else
     image=$1
 fi
-
-
-# docker2singularity.sh will convert a docker image into a singularity
-# Must be run with sudo to use docker commands (eg aufs)
 
 MY_GROUPS=`groups`
 
@@ -38,7 +34,11 @@ if [[ $permission == false ]]; then
     exit 0;
 fi
 
-# Run the image and obtain the ID, should DL if we don't have it
+
+################################################################################
+### CONTAINER RUNNING ID #######################################################
+################################################################################
+
 runningid=`$SUDOCMD docker run -d $image tail -f /dev/null`
 
 # Full id looks like
@@ -47,30 +47,51 @@ runningid=`$SUDOCMD docker run -d $image tail -f /dev/null`
 # Take the first 12 characters to get id of container
 container_id=`echo ${runningid} | cut -c1-12`
 
-# For Network Address
-#$SUDOCMD docker inspect --format="{{.NetworkSettings.IPAddress}}" bodymap_web_1
+# Network address, if needed
+network_address=$SUDOCMD docker inspect --format="{{.NetworkSettings.IPAddress}}" $container_id
+
+
+################################################################################
+### IMAGE NAME #################################################################
+################################################################################
+
 image_name=`$SUDOCMD docker inspect --format="{{.Config.Image}}" $container_id`
+
 # using bash substitution
 # removing special chars [perhaps echo + sed would be better for other chars]
 image_name=${image_name/\//_}
+
 # following is the date of the container, not the docker image.
 #creation_date=`$SUDOCMD docker inspect --format="{{.Created}}" $container_id`
 creation_date=`$SUDOCMD docker inspect --format="{{.Created}}" $image`
+
+
+################################################################################
+### IMAGE SIZE #################################################################
+################################################################################
+
 size=`$SUDOCMD docker inspect --format="{{.Size}}" $image`
 # convert size in MB (it seems too small for singularity containers ...?). Add 1MB to round up (minimum).
 size=`echo $(($size/1000000+1))`
 # adding half of the container size seems to work (do not know why exactly...?)
 # I think it would be Ok by adding 1/3 of the size.
 size=`echo $(($size+$size/2))`
-#uncomment the following if it is too small (it should be enough; otherwise adjust it).
-#size=4096
+
 echo "Size: $size MB for the singularity container"
+
+
+
+
+################################################################################
+### IMAGE CREATION #############################################################
+################################################################################
+
+
 creation_date=`echo ${creation_date} | cut -c1-10`
 new_container_name=$image_name-$creation_date.img
 
 # Create singularity image # STOPPED HERE - need to get container to run, and export
 $SUDOCMD singularity create -s $size $new_container_name
 $SUDOCMD docker export $container_id | $SUDOCMD singularity import $new_container_name
-
 
 $SUDOCMD docker stop $container_id
