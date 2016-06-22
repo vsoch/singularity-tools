@@ -94,4 +94,5 @@ new_container_name=$image_name-$creation_date.img
 $SUDOCMD singularity create -s $size $new_container_name
 $SUDOCMD docker export $container_id | $SUDOCMD singularity import $new_container_name
 
+echo "Stopping container, please wait."
 $SUDOCMD docker stop $container_id
