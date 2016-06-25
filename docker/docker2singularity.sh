@@ -89,10 +89,25 @@ echo "Size: $size MB for the singularity container"
 
 creation_date=`echo ${creation_date} | cut -c1-10`
 new_container_name=$image_name-$creation_date.img
-
-# Create singularity image # STOPPED HERE - need to get container to run, and export
 $SUDOCMD singularity create -s $size $new_container_name
 $SUDOCMD docker export $container_id | $SUDOCMD singularity import $new_container_name
+
+
+
+################################################################################
+### SINGULARITY RUN SCRIPT #####################################################
+################################################################################
+
+CMD=$($SUDOCMD docker inspect --format='{{json .Config.Cmd}}' $image)
+# Remove quotes and braces
+CMD=`echo "${CMD//\"/}" | sed 's/\[//g' | sed 's/\]//g'`
+if [[ $CMD != none ]]; then
+  echo '#!/bin/sh'
+  (IFS='[],'; echo $CMD)
+fi > singularity
+chmod +x singularity
+sudo singularity copy $new_container_name singularity /
+rm singularity
 
 echo "Stopping container, please wait."
 $SUDOCMD docker stop $container_id
