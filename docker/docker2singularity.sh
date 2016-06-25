@@ -93,7 +93,14 @@ $SUDOCMD singularity create -s $size $new_container_name
 $SUDOCMD docker export $container_id | $SUDOCMD singularity import $new_container_name
 $SUDOCMD docker inspect $container_id >> singularity.json
 sudo singularity copy $new_container_name singularity.json /
+
+# Merge the /etc/group file
+$SUDOCMD docker cp $container_id:/etc/group grouphost
+sort /etc/group grouphost | uniq -u > group
+$SUDOCMD singularity copy $new_container_name group /etc/group
 rm singularity.json
+$SUDOCMD rm grouphost
+$SUDOCMD rm group
 
 ################################################################################
 ### SINGULARITY RUN SCRIPT #####################################################
