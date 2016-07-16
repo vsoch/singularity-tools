@@ -8,6 +8,7 @@ from BeautifulSoup import BeautifulSoup
 import requests
 import re
 import os
+import sys
 
 required_softwares = ['docker','singularity']
 image_directory = '/home/vanessa/Documents/Work/SINGULARITY/docker2singularity'
