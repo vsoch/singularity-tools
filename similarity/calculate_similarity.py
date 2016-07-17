@@ -15,7 +15,7 @@ if check_install() != True:
     print("You must have Singularity installed to use this script!")
     sys.exit(32)
 
-print("Calculating similarity for %s, %s of %s..." %(pkg1,count,len(packages)))
+print("Calculating similarity for %s vs %s..." %(pkg1,pkg2))
 
 sims = dict()
 
