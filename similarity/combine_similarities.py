@@ -35,9 +35,9 @@ for s in range(len(scores)):
     both.loc[pkg2,pkg1] = result["both"]
 
 # The remaining not calculated (NaN) are with values == 1 on the diagonal
-files[files.isnull()] = 1.0
-folders[folders.isnull()] = 1.0
-both[both.isnull()] = 1.0
+both = both.fillna(1.0)
+files = files.fillna(1.0)
+folders = folders.fillna(1.0)
 
 # Save data frames to file for other stuffs
 files.to_csv("%s/files_sims.tsv" %(results_folder),sep="\t")
